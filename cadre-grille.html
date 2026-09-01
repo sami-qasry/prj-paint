@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess What and When</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    font-family: monospace;
+    min-height: 100vh;
+    user-select: none;
+    color: #fff;
+  }
+
+  /* ══════════════════════════════
+     PAGE PARAMÈTRES
+  ══════════════════════════════ */
+  #settings-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 28px;
+  }
+
+  #settings-page h1 {
+    font-family: 'Georgia', serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.3em;
+    color: #c9a84c;
+  }
+
+  #settings-page h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .settings-section {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px 28px;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .input-group label {
+    font-size: 0.68rem;
+    color: #666;
+    letter-spacing: 0.1em;
+  }
+
+  .input-group input[type="number"] {
+    width: 72px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    font-family: monospace;
+    font-size: 1rem;
+    padding: 6px 10px;
+    text-align: center;
+    outline: none;
+  }
+
+  .input-group input[type="number"]:focus {
+    border-color: #c9a84c;
+  }
+
+  .times {
+    font-size: 1.2rem;
+    color: #444;
+    padding-top: 18px;
+  }
+
+  /* Grille de couleurs */
+  .all-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .color-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .color-choice .swatch-sq {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 3px solid transparent;
+    transition: transform 0.1s;
+  }
+
+  .color-choice .swatch-sq:hover {
+    transform: scale(1.1);
+  }
+
+  .color-choice.chosen .swatch-sq {
+    border: 3px solid #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    transform: scale(1.1);
+  }
+
+  .color-choice .clabel {
+    font-size: 0.55rem;
+    color: #666;
+    text-align: center;
+  }
+
+  .color-choice.chosen .clabel {
+    color: #aaa;
+  }
+
+  /* Bouton lancer */
+  #btn-start {
+    background: #c9a84c;
+    color: #000;
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    text-transform: uppercase;
+  }
+
+  #btn-start:hover {
+    background: #e0bb5a;
+    transform: scale(1.03);
+  }
+
+  #settings-error {
+    color: #C41E3A;
+    font-size: 0.75rem;
+    min-height: 1em;
+  }
+
+  /* ══════════════════════════════
+     PAGE GRILLE
+  ══════════════════════════════ */
+  #grid-page {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 12px;
+  }
+
+  #logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  #logo .line1 {
+    color: #fff;
+    font-size: 2rem;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+  }
+
+  #logo .line2 {
+    color: #c9a84c;
+    font-size: 0.95rem;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    letter-spacing: 0.5em;
+  }
+
+  .palette-row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .color-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.1s;
+  }
+
+  .swatch:hover { transform: scale(1.1); }
+
+  .swatch.active {
+    border: 3px solid white !important;
+    transform: scale(1.15);
+    box-shadow: 0 0 14px rgba(255,255,255,0.6);
+  }
+
+  .count {
+    font-size: 0.65rem;
+    color: #aaa;
+    text-align: center;
+  }
+
+  .sep { width: 1px; height: 50px; background: #333; margin: 0 4px; }
+
+  #status { color: #555; font-size: 0.72rem; }
+
+  .outer-frame {
+    padding: 16px;
+    background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+    border: 1px solid #2a2a2a;
+    box-shadow:
+      0 0 0 1px #111,
+      0 0 0 3px #c9a84c,
+      0 0 0 5px #111,
+      0 0 0 7px #8a6a1a,
+      0 0 40px rgba(201,168,76,0.2),
+      0 0 80px rgba(201,168,76,0.08);
+    position: relative;
+  }
+
+  .outer-frame::before {
+    content: ''; position: absolute; inset: 6px;
+    border: 1px solid rgba(201,168,76,0.25); pointer-events: none;
+  }
+  .outer-frame::after {
+    content: ''; position: absolute; inset: 9px;
+    border: 1px solid rgba(201,168,76,0.1); pointer-events: none;
+  }
+
+  .outer-frame .corner-tl, .outer-frame .corner-tr,
+  .outer-frame .corner-bl, .outer-frame .corner-br {
+    position: absolute; width: 24px; height: 24px;
+    border-color: #c9a84c; border-style: solid; z-index: 2;
+  }
+  .outer-frame .corner-tl { top:2px; left:2px; border-width:2px 0 0 2px; }
+  .outer-frame .corner-tr { top:2px; right:2px; border-width:2px 2px 0 0; }
+  .outer-frame .corner-bl { bottom:2px; left:2px; border-width:0 0 2px 2px; }
+  .outer-frame .corner-br { bottom:2px; right:2px; border-width:0 2px 2px 0; }
+
+  .frame-wrapper {
+    border: 2px solid #c9a84c;
+    padding: 10px;
+    box-shadow: 0 0 30px rgba(201,168,76,0.15);
+  }
+
+  .grid {
+    display: grid;
+    cursor: crosshair;
+    overflow: hidden;
+  }
+
+  .cell {
+    width: 8px;
+    height: 8px;
+    background: #888;
+    border-right: 0.5px solid #000;
+    border-bottom: 0.5px solid #000;
+  }
+
+  .cell.sep-col { border-right: 2px solid #000; }
+  .cell.sep-row { border-bottom: 2px solid #000; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PAGE PARAMÈTRES ═══════════ -->
+<div id="settings-page">
+
+  <div id="logo-settings">
+    <div style="font-family:'Georgia',serif; font-size:1.6rem; font-weight:bold; letter-spacing:0.35em; color:#fff; text-align:center;">GUESS WHAT</div>
+    <div style="font-family:'Georgia',serif; font-size:0.85rem; font-style:italic; letter-spacing:0.5em; color:#c9a84c; text-align:center;">and When</div>
+  </div>
+
+  <div style="color:#c9a84c; font-size:0.75rem; letter-spacing:0.3em; text-transform:uppercase;">— Paramètres —</div>
+
+  <!-- Mode taille -->
+  <div class="settings-section">
+    <h2>Mode d'affichage du cadre</h2>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:1px solid #333;border-radius:8px;transition:border-color 0.15s;" id="label-real">
+        <input type="radio" name="size-mode" value="real" checked style="accent-color:#c9a84c;">
+        <div>
+          <div style="color:#fff;font-size:0.85rem;">Taille Réelle</div>
+          <div style="color:#555;font-size:0.65rem;margin-top:2px;">Grande zone — confortable pour dessiner</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:1px solid #333;border-radius:8px;transition:border-color 0.15s;" id="label-video">
+        <input type="radio" name="size-mode" value="video" style="accent-color:#c9a84c;">
+        <div>
+          <div style="color:#fff;font-size:0.85rem;">Taille Vidéo</div>
+          <div style="color:#555;font-size:0.65rem;margin-top:2px;">1280×720 — optimisé pour enregistrer</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Taille de la grille -->
+  <div class="settings-section">
+    <h2>Taille de la grille (petits morceaux)</h2>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Colonnes (X)</label>
+        <input type="number" id="inp-cols" value="90" min="1" max="300">
+      </div>
+      <div class="times">×</div>
+      <div class="input-group">
+        <label>Lignes (Y)</label>
+        <input type="number" id="inp-rows" value="120" min="1" max="300">
+      </div>
+    </div>
+  </div>
+
+  <!-- Taille des grands blocs -->
+  <div class="settings-section">
+    <h2 style="display:flex; align-items:center; gap:10px;">
+      <input type="checkbox" id="chk-blocks" checked style="width:16px;height:16px;cursor:pointer;accent-color:#c9a84c;">
+      Activer les grands blocs
+    </h2>
+    <div id="blocks-inputs" class="input-row" style="margin-top:10px;">
+      <div class="input-group">
+        <label>Colonnes par bloc</label>
+        <input type="number" id="inp-bcols" value="9" min="1" max="50">
+      </div>
+      <div class="times">×</div>
+      <div class="input-group">
+        <label>Lignes par bloc</label>
+        <input type="number" id="inp-brows" value="12" min="1" max="50">
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h2>Couleurs à utiliser (sélectionnez au moins 1)</h2>
+    <div class="all-colors" id="all-colors"></div>
+    <div style="margin-top:16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <input type="color" id="custom-color-picker" value="#00FF00" style="width:44px;height:44px;border:none;border-radius:6px;cursor:pointer;padding:2px;background:#1a1a1a;">
+      <input type="text" id="custom-color-name" placeholder="Nom (ex: Lime)" style="background:#0a0a0a;border:1px solid #333;border-radius:6px;color:#fff;font-family:monospace;font-size:0.85rem;padding:6px 10px;outline:none;width:130px;">
+      <button id="btn-add-color" style="background:#c9a84c;color:#000;font-family:monospace;font-size:0.8rem;font-weight:bold;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;letter-spacing:0.1em;">+ Ajouter</button>
+    </div>
+  </div>
+
+  <div id="settings-error"></div>
+
+  <button id="btn-start">Commencer →</button>
+</div>
+
+<!-- Curseur flottant avec les couleurs -->
+<div id="cursor-colors" style="position:fixed;pointer-events:none;z-index:9999;display:none;flex-direction:column;gap:3px;transform:translate(18px, 8px);"></div>
+
+<!-- ═══════════ PAGE GRILLE ═══════════ -->
+<div id="grid-page">
+  <div id="logo">
+    <div class="line1">Guess What</div>
+    <div class="line2">and When</div>
+  </div>
+
+  <div class="palette-row" id="palette-row"></div>
+
+  <!-- Barre d'outils -->
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+
+    <!-- Taille du pinceau -->
+    <div style="display:flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:6px 10px;">
+      <span style="color:#666;font-size:0.7rem;letter-spacing:0.1em;">PINCEAU</span>
+      <div id="brush-btns" style="display:flex;gap:4px;">
+        <button class="brush-btn active" data-size="1" style="width:28px;height:28px;border-radius:5px;border:2px solid #c9a84c;background:#0a0a0a;color:#fff;font-family:monospace;font-size:0.75rem;cursor:pointer;">1</button>
+        <button class="brush-btn" data-size="2" style="width:28px;height:28px;border-radius:5px;border:2px solid transparent;background:#0a0a0a;color:#aaa;font-family:monospace;font-size:0.75rem;cursor:pointer;">2</button>
+        <button class="brush-btn" data-size="4" style="width:28px;height:28px;border-radius:5px;border:2px solid transparent;background:#0a0a0a;color:#aaa;font-family:monospace;font-size:0.75rem;cursor:pointer;">4</button>
+        <button class="brush-btn" data-size="8" style="width:28px;height:28px;border-radius:5px;border:2px solid transparent;background:#0a0a0a;color:#aaa;font-family:monospace;font-size:0.75rem;cursor:pointer;">8</button>
+      </div>
+    </div>
+
+    <!-- Gomme -->
+    <button id="btn-eraser" style="padding:6px 14px;border-radius:8px;border:2px solid transparent;background:#1a1a1a;color:#aaa;font-family:monospace;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;">🧹 Gomme</button>
+
+    <!-- Auto-colorisation -->
+    <div style="display:flex;align-items:center;gap:6px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:6px 10px;">
+      <span style="color:#666;font-size:0.7rem;letter-spacing:0.1em;">AUTO</span>
+      <button id="btn-auto" style="padding:4px 10px;border-radius:6px;border:2px solid transparent;background:#0a0a0a;color:#aaa;font-family:monospace;font-size:0.75rem;cursor:pointer;letter-spacing:0.1em;">🤖 Démarrer</button>
+      <select id="auto-speed" style="background:#0a0a0a;border:1px solid #333;border-radius:6px;color:#aaa;font-family:monospace;font-size:0.7rem;padding:4px 6px;outline:none;">
+        <option value="120">Lent</option>
+        <option value="40" selected>Moyen</option>
+        <option value="10">Rapide</option>
+      </select>
+      <button id="btn-ghost" style="padding:4px 10px;border-radius:6px;border:1px solid #333;background:#0a0a0a;color:#aaa;font-family:monospace;font-size:0.75rem;cursor:pointer;">👁️ Modèle</button>
+    </div>
+
+    <!-- Retour paramètres -->
+    <button id="btn-back" style="padding:6px 14px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#666;font-family:monospace;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;">← Retour</button>
+
+  </div>
+
+  <div id="total-line" style="color:#c9a84c; font-size:0.9rem; letter-spacing:0.15em;">0 / 0</div>
+  <div id="status">👆 Cliquez une couleur puis peignez</div>
+
+  <div class="outer-frame" id="outer-frame">
+    <div class="corner-tl"></div>
+    <div class="corner-tr"></div>
+    <div class="corner-bl"></div>
+    <div class="corner-br"></div>
+    <div class="frame-wrapper">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── Toutes les couleurs disponibles ───
+  var ALL_COLORS = [
+    { id: 'ac1',  hex: '#FFD500', name: 'Jaune' },
+    { id: 'ac2',  hex: '#FF5800', name: 'Orange' },
+    { id: 'ac3',  hex: '#0046AD', name: 'Bleu' },
+    { id: 'ac4',  hex: '#FFFFFF', name: 'Blanc' },
+    { id: 'ac5',  hex: '#FF0000', name: 'Rouge' },
+    { id: 'ac6',  hex: '#009B48', name: 'Vert' },
+    { id: 'ac7',  hex: '#FF6B6B', name: 'Rose' },
+    { id: 'ac8',  hex: '#7B2D8B', name: 'Violet' },
+    { id: 'ac9',  hex: '#000000', name: 'Noir' },
+    { id: 'ac10', hex: '#888888', name: 'Gris' },
+    { id: 'ac11', hex: '#00CFCF', name: 'Cyan' },
+    { id: 'ac12', hex: '#FF8C00', name: 'Or foncé' },
+    { id: 'ac13', hex: '#8B4513', name: 'Marron' },
+    { id: 'ac14', hex: '#F0E68C', name: 'Crème' },
+    { id: 'ac15', hex: '#4B0082', name: 'Indigo' },
+  ];
+
+  // Pré-sélectionner les 5 couleurs par défaut
+  var defaultSelected = ['ac1','ac2','ac3','ac4','ac5'];
+
+  var colorContainer = document.getElementById('all-colors');
+  ALL_COLORS.forEach(function(c) {
+    var div = document.createElement('div');
+    div.className = 'color-choice' + (defaultSelected.indexOf(c.id) >= 0 ? ' chosen' : '');
+    div.id = 'choice-' + c.id;
+
+    var sq = document.createElement('div');
+    sq.className = 'swatch-sq';
+    sq.style.background = c.hex;
+    if (c.hex === '#000000') sq.style.border = '3px solid #555';
+
+    var lbl = document.createElement('div');
+    lbl.className = 'clabel';
+    lbl.textContent = c.name;
+
+    div.appendChild(sq);
+    div.appendChild(lbl);
+    colorContainer.appendChild(div);
+
+    div.onclick = function() {
+      div.classList.toggle('chosen');
+    };
+  });
+
+  // Highlight radio labels
+  document.querySelectorAll('input[name="size-mode"]').forEach(function(r) {
+    r.onchange = function() {
+      document.getElementById('label-real').style.borderColor = r.value === 'real' ? '#c9a84c' : '#333';
+      document.getElementById('label-video').style.borderColor = r.value === 'video' ? '#c9a84c' : '#333';
+    };
+  });
+  document.getElementById('label-real').style.borderColor = '#c9a84c';
+
+  // ─── Ajouter couleur personnalisée ───
+  var customCount = 0;
+  document.getElementById('btn-add-color').onclick = function() {
+    var hex = document.getElementById('custom-color-picker').value;
+    var name = document.getElementById('custom-color-name').value.trim() || ('Custom ' + (++customCount));
+
+    var id = 'custom-' + Date.now();
+    var newColor = { id: id, hex: hex, name: name };
+    ALL_COLORS.push(newColor);
+
+    // Créer le bloc couleur et l'ajouter
+    var div = document.createElement('div');
+    div.className = 'color-choice chosen';
+    div.id = 'choice-' + id;
+
+    var sq = document.createElement('div');
+    sq.className = 'swatch-sq';
+    sq.style.background = hex;
+
+    var lbl = document.createElement('div');
+    lbl.className = 'clabel';
+    lbl.textContent = name;
+
+    div.appendChild(sq);
+    div.appendChild(lbl);
+    document.getElementById('all-colors').appendChild(div);
+
+    div.onclick = function() { div.classList.toggle('chosen'); };
+
+    // Reset
+    document.getElementById('custom-color-name').value = '';
+  };
+
+  // Toggle blocs
+  document.getElementById('chk-blocks').onchange = function() {
+    document.getElementById('blocks-inputs').style.display = this.checked ? 'flex' : 'none';
+  };
+
+  // ─── Son de colorisation ───
+  var audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function playPaintSound() {
+    try {
+      var ctx = getAudioCtx();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.08);
+    } catch(e) {}
+  }
+
+  // ─── Bouton Commencer ───
+  document.getElementById('btn-start').onclick = function() {
+    var cols  = parseInt(document.getElementById('inp-cols').value)  || 0;
+    var rows  = parseInt(document.getElementById('inp-rows').value)  || 0;
+    var useBlocks = document.getElementById('chk-blocks').checked;
+    var bcols = useBlocks ? (parseInt(document.getElementById('inp-bcols').value) || 0) : 0;
+    var brows = useBlocks ? (parseInt(document.getElementById('inp-brows').value) || 0) : 0;
+
+    var chosen = ALL_COLORS.filter(function(c) {
+      return document.getElementById('choice-' + c.id).classList.contains('chosen');
+    });
+
+    var err = document.getElementById('settings-error');
+
+    if (cols < 1 || rows < 1) {
+      err.textContent = '⚠️ Entrez des valeurs valides pour la grille.'; return;
+    }
+    if (useBlocks && (bcols < 1 || brows < 1)) {
+      err.textContent = '⚠️ Entrez des valeurs valides pour les blocs.'; return;
+    }
+    if (chosen.length === 0) {
+      err.textContent = '⚠️ Sélectionnez au moins une couleur.'; return;
+    }
+    err.textContent = '';
+
+    var sizeMode = document.querySelector('input[name="size-mode"]:checked').value;
+    startGrid(cols, rows, bcols, brows, chosen, sizeMode);
+  };
+
+  // ─── Lancer la grille ───
+  function startGrid(COLS, ROWS, BCOLS, BROWS, COLORS, sizeMode, initialCells) {
+    var TOTAL = COLS * ROWS;
+    var CELL_SIZE;
+
+    if (sizeMode === 'video') {
+      var vidW = 1240;
+      var vidH = 660;
+      CELL_SIZE = Math.floor(Math.min(vidW / COLS, vidH / ROWS));
+      CELL_SIZE = Math.max(2, Math.min(CELL_SIZE, 60));
+    } else {
+      var maxW = window.innerWidth - 40;
+      var maxH = window.innerHeight - 180;
+      CELL_SIZE = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+      CELL_SIZE = Math.max(4, Math.min(CELL_SIZE, 60));
+    }
+
+    // Cacher settings, afficher grille
+    document.getElementById('settings-page').style.display = 'none';
+    var gp = document.getElementById('grid-page');
+    gp.style.display = 'flex';
+
+    // Mettre à jour total
+    document.getElementById('total-line').textContent = '0 / ' + TOTAL;
+
+    // Construire palette
+    var paletteRow = document.getElementById('palette-row');
+    paletteRow.innerHTML = '';
+    var counts = {};
+    COLORS.forEach(function(c) { counts[c.id] = 0; });
+
+    var selectedColor = null;
+    var selectedId = null;
+
+    COLORS.forEach(function(c, idx) {
+      if (idx > 0) {
+        var sep = document.createElement('div');
+        sep.className = 'sep';
+        paletteRow.appendChild(sep);
+      }
+      var block = document.createElement('div');
+      block.className = 'color-block';
+
+      var sw = document.createElement('div');
+      sw.className = 'swatch';
+      sw.id = 'sw-' + c.id;
+      sw.style.background = c.hex;
+      if (c.hex === '#000000') sw.style.border = '3px solid #555';
+      sw.title = c.name;
+      sw.onclick = function() {
+        COLORS.forEach(function(x) {
+          var el = document.getElementById('sw-' + x.id);
+          if (el) el.classList.remove('active');
+        });
+        sw.classList.add('active');
+        selectedColor = c.hex;
+        selectedId = c.id;
+        isEraser = false;
+        document.getElementById('btn-eraser').style.borderColor = 'transparent';
+        document.getElementById('btn-eraser').style.color = '#aaa';
+        highlightCursorColor(c.id);
+        document.getElementById('status').textContent = '🎨 ' + c.name + ' sélectionné';
+      };
+
+      var cnt = document.createElement('div');
+      cnt.className = 'count';
+      cnt.id = 'cnt-' + c.id;
+      cnt.textContent = '0';
+
+      block.appendChild(sw);
+      block.appendChild(cnt);
+      paletteRow.appendChild(block);
+    });
+
+    // Construire grille
+    var grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = 'repeat(' + COLS + ', ' + CELL_SIZE + 'px)';
+    grid.style.width  = (COLS * CELL_SIZE) + 'px';
+    grid.style.height = (ROWS * CELL_SIZE) + 'px';
+
+    var cellColors = new Array(TOTAL).fill(null);
+    var cellEls = [];
+
+    var SEP = (BCOLS > 0 && BROWS > 0) ? 3 : 0; // largeur de la séparation en px
+
+    // Style cellules — taille exacte, aucune bordure
+    var styleTag = document.getElementById('dynamic-cell-style');
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = 'dynamic-cell-style';
+      document.head.appendChild(styleTag);
+    }
+    styleTag.textContent = '.cell { width:' + CELL_SIZE + 'px; height:' + CELL_SIZE + 'px; background:#888; border:none; padding:0; margin:0; }';
+
+    // Construire le template CSS grid avec séparateurs
+    var colTemplate = '';
+    for (var ci = 0; ci < COLS; ci++) {
+      colTemplate += CELL_SIZE + 'px';
+      if (SEP > 0 && ci < COLS - 1 && (ci + 1) % BCOLS === 0) colTemplate += ' ' + SEP + 'px';
+      if (ci < COLS - 1) colTemplate += ' ';
+    }
+
+    var rowTemplate = '';
+    for (var ri = 0; ri < ROWS; ri++) {
+      rowTemplate += CELL_SIZE + 'px';
+      if (SEP > 0 && ri < ROWS - 1 && (ri + 1) % BROWS === 0) rowTemplate += ' ' + SEP + 'px';
+      if (ri < ROWS - 1) rowTemplate += ' ';
+    }
+
+    // Calculer vraie largeur/hauteur avec séparateurs
+    var numColSeps = SEP > 0 ? Math.floor((COLS - 1) / BCOLS) : 0;
+    var numRowSeps = SEP > 0 ? Math.floor((ROWS - 1) / BROWS) : 0;
+    var gridW = COLS * CELL_SIZE + numColSeps * SEP;
+    var gridH = ROWS * CELL_SIZE + numRowSeps * SEP;
+
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = colTemplate;
+    grid.style.gridTemplateRows = rowTemplate;
+    grid.style.width = gridW + 'px';
+    grid.style.height = gridH + 'px';
+    grid.style.gap = '0';
+
+    // Remplir la grille avec cellules ET séparateurs
+    var cellIndex = 0;
+    for (var ri2 = 0; ri2 < ROWS; ri2++) {
+      for (var ci2 = 0; ci2 < COLS; ci2++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.setAttribute('data-index', cellIndex++);
+        cellEls.push(cell);
+        grid.appendChild(cell);
+
+        // Séparateur vertical après chaque BCOLS colonnes (sauf dernière)
+        if (SEP > 0 && ci2 < COLS - 1 && (ci2 + 1) % BCOLS === 0) {
+          var vs = document.createElement('div');
+          vs.style.cssText = 'width:' + SEP + 'px;height:' + CELL_SIZE + 'px;background:#000;';
+          grid.appendChild(vs);
+        }
+      }
+
+      // Ligne séparatrice horizontale complète après chaque BROWS lignes
+      if (SEP > 0 && ri2 < ROWS - 1 && (ri2 + 1) % BROWS === 0) {
+        // Remplir toute la rangée séparatrice (colonnes + séparateurs verticaux)
+        for (var ci3 = 0; ci3 < COLS; ci3++) {
+          var hs = document.createElement('div');
+          hs.style.cssText = 'width:' + CELL_SIZE + 'px;height:' + SEP + 'px;background:#000;';
+          grid.appendChild(hs);
+          if (SEP > 0 && ci3 < COLS - 1 && (ci3 + 1) % BCOLS === 0) {
+            var hsc = document.createElement('div');
+            hsc.style.cssText = 'width:' + SEP + 'px;height:' + SEP + 'px;background:#000;';
+            grid.appendChild(hsc);
+          }
+        }
+      }
+    }
+
+    // Canvas léger juste pour les petites lignes entre cases
+    var wrapper = document.querySelector('.frame-wrapper');
+    wrapper.style.position = 'relative';
+    wrapper.querySelectorAll('.block-overlay').forEach(function(el){ el.remove(); });
+
+    var canvas = document.createElement('canvas');
+    canvas.className = 'block-overlay';
+    canvas.width = gridW;
+    canvas.height = gridH;
+    canvas.style.cssText = 'position:absolute;top:10px;left:10px;pointer-events:none;z-index:5;';
+    wrapper.appendChild(canvas);
+
+    var ctx2d = canvas.getContext('2d');
+    ctx2d.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx2d.lineWidth = 0.5;
+
+    // Petites lignes verticales (hors séparateurs)
+    var xPos = 0;
+    for (var ci4 = 0; ci4 < COLS - 1; ci4++) {
+      xPos += CELL_SIZE;
+      if (SEP > 0 && (ci4 + 1) % BCOLS === 0) { xPos += SEP; continue; }
+      ctx2d.beginPath(); ctx2d.moveTo(xPos + 0.5, 0); ctx2d.lineTo(xPos + 0.5, gridH); ctx2d.stroke();
+    }
+
+    // Petites lignes horizontales (hors séparateurs)
+    var yPos = 0;
+    for (var ri3 = 0; ri3 < ROWS - 1; ri3++) {
+      yPos += CELL_SIZE;
+      if (SEP > 0 && (ri3 + 1) % BROWS === 0) { yPos += SEP; continue; }
+      ctx2d.beginPath(); ctx2d.moveTo(0, yPos + 0.5); ctx2d.lineTo(gridW, yPos + 0.5); ctx2d.stroke();
+    }
+
+    // Fonctions peinture
+    function updateCounters() {
+      var totalPainted = 0;
+      COLORS.forEach(function(c) {
+        var p = counts[c.id];
+        totalPainted += p;
+        var el = document.getElementById('cnt-' + c.id);
+        if (el) el.textContent = p;
+      });
+      document.getElementById('total-line').textContent = totalPainted + ' / ' + TOTAL;
+    }
+
+    // ─── Curseur flottant avec les couleurs ───
+    var cursorEl = document.getElementById('cursor-colors');
+    cursorEl.innerHTML = '';
+    cursorEl.style.display = 'flex';
+    cursorEl.style.pointerEvents = 'auto';
+
+    COLORS.forEach(function(c) {
+      var dot = document.createElement('div');
+      dot.id = 'cursor-dot-' + c.id;
+      dot.style.cssText = 'width:8px;height:8px;border-radius:2px;background:' + c.hex + ';border:1px solid rgba(255,255,255,0.2);opacity:0.8;transition:opacity 0.12s,transform 0.12s;cursor:pointer;';
+      if (c.hex === '#000000') dot.style.border = '2px solid #555';
+
+      dot.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var sw = document.getElementById('sw-' + c.id);
+        if (sw) sw.click();
+        // Fermer la palette automatiquement
+        paletteFrozen = false;
+        cursorEl.style.display = 'none';
+        cursorEl.style.transform = 'none';
+        cursorEl.style.background = 'transparent';
+        cursorEl.style.padding = '0';
+        cursorEl.style.outline = 'none';
+      });
+
+      dot.addEventListener('mouseenter', function() {
+        if (c.id !== selectedId) dot.style.opacity = '0.85';
+      });
+      dot.addEventListener('mouseleave', function() {
+        if (c.id !== selectedId) dot.style.opacity = '0.5';
+      });
+
+      cursorEl.appendChild(dot);
+    });
+
+    // Mettre en valeur la couleur sélectionnée dans le curseur
+    function highlightCursorColor(id) {
+      COLORS.forEach(function(c) {
+        var dot = document.getElementById('cursor-dot-' + c.id);
+        if (!dot) return;
+        if (c.id === id) {
+          dot.style.opacity = '1';
+          dot.style.transform = 'scale(1.45)';
+          dot.style.borderColor = '#fff';
+        } else {
+          dot.style.opacity = '0.5';
+          dot.style.transform = 'scale(1)';
+          dot.style.borderColor = 'rgba(255,255,255,0.25)';
+        }
+      });
+    }
+
+    var lastMouseX = window.innerWidth / 2;
+    var lastMouseY = window.innerHeight / 2;
+
+    document.addEventListener('mousemove', function(e) {
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    // ─── Espace = toggle palette au curseur ───
+    cursorEl.style.display = 'none';
+    var paletteFrozen = false;
+
+    document.addEventListener('keydown', function(e) {
+      if (e.code !== 'Space') return;
+      e.preventDefault();
+      if (!paletteFrozen) {
+        paletteFrozen = true;
+        cursorEl.style.display = 'flex';
+        cursorEl.style.flexDirection = 'column';
+        cursorEl.style.gap = '1px';
+        cursorEl.style.background = 'rgba(15,15,15,0.88)';
+        cursorEl.style.padding = '3px';
+        cursorEl.style.borderRadius = '8px';
+        cursorEl.style.outline = '1.5px solid #c9a84c';
+        cursorEl.style.transform = 'translate(-50%, -50%)';
+        cursorEl.style.left = lastMouseX + 'px';
+        cursorEl.style.top = lastMouseY + 'px';
+      } else {
+        paletteFrozen = false;
+        cursorEl.style.display = 'none';
+        cursorEl.style.transform = 'none';
+        cursorEl.style.background = 'transparent';
+        cursorEl.style.padding = '0';
+        cursorEl.style.outline = 'none';
+      }
+    });
+
+    // ─── Taille du pinceau ───
+    var brushSize = 1;
+    document.querySelectorAll('.brush-btn').forEach(function(btn) {
+      btn.onclick = function() {
+        brushSize = parseInt(btn.getAttribute('data-size'));
+        document.querySelectorAll('.brush-btn').forEach(function(b) {
+          b.style.borderColor = 'transparent';
+          b.style.color = '#aaa';
+        });
+        btn.style.borderColor = '#c9a84c';
+        btn.style.color = '#fff';
+        // désactiver gomme si on choisit pinceau
+        isEraser = false;
+        document.getElementById('btn-eraser').style.borderColor = 'transparent';
+        document.getElementById('btn-eraser').style.color = '#aaa';
+        document.getElementById('status').textContent = '🖌️ Pinceau ' + brushSize + 'x' + brushSize;
+      };
+    });
+
+    // ─── Gomme ───
+    var isEraser = false;
+    document.getElementById('btn-eraser').onclick = function() {
+      isEraser = !isEraser;
+      var btn = document.getElementById('btn-eraser');
+      if (isEraser) {
+        btn.style.borderColor = '#fff';
+        btn.style.color = '#fff';
+        // désélectionner couleur active
+        COLORS.forEach(function(x) {
+          var el = document.getElementById('sw-' + x.id);
+          if (el) el.classList.remove('active');
+        });
+        selectedColor = null;
+        selectedId = null;
+        document.getElementById('status').textContent = '🧹 Gomme activée';
+      } else {
+        btn.style.borderColor = 'transparent';
+        btn.style.color = '#aaa';
+        document.getElementById('status').textContent = '👆 Sélectionnez une couleur';
+      }
+    };
+
+    // ─── Retour paramètres ───
+    document.getElementById('btn-back').onclick = function() {
+      document.getElementById('grid-page').style.display = 'none';
+      document.getElementById('settings-page').style.display = 'flex';
+    };
+
+    function paintCell(cell) {
+      var idx = parseInt(cell.getAttribute('data-index'));
+      if (isEraser) {
+        var prevId = cellColors[idx];
+        if (!prevId) return;
+        counts[prevId] = Math.max(0, counts[prevId] - 1);
+        cell.style.background = emptyBg();
+        cellColors[idx] = null;
+        updateCounters();
+        playPaintSound();
+      } else {
+        if (!selectedColor) return;
+        var prevId2 = cellColors[idx];
+        if (prevId2 === selectedId) return;
+        if (prevId2) counts[prevId2] = Math.max(0, counts[prevId2] - 1);
+        cell.style.background = selectedColor;
+        cellColors[idx] = selectedId;
+        counts[selectedId]++;
+        updateCounters();
+        playPaintSound();
+      }
+    }
+
+    function paintArea(target) {
+      if (!target.classList.contains('cell')) return;
+      if (!isEraser && !selectedColor) {
+        document.getElementById('status').textContent = '⚠️ Choisissez d\'abord une couleur !';
+        return;
+      }
+      var idx = parseInt(target.getAttribute('data-index'));
+      var row = Math.floor(idx / COLS);
+      var col = idx % COLS;
+      var half = Math.floor(brushSize / 2);
+      for (var dr = -half; dr < brushSize - half; dr++) {
+        for (var dc = -half; dc < brushSize - half; dc++) {
+          var nr = row + dr;
+          var nc = col + dc;
+          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+          var ni = nr * COLS + nc;
+          var el = grid.querySelector('[data-index="' + ni + '"]');
+          if (el) paintCell(el);
+        }
+      }
+    }
+
+    var painting = false;
+    grid.addEventListener('mousedown', function(e) { painting = true; paintArea(e.target); });
+    grid.addEventListener('mousemove', function(e) { if (painting) paintArea(e.target); });
+    document.addEventListener('mouseup', function() { painting = false; });
+
+    // ─── Cible mosaïque + Aperçu fantôme + Auto-colorisation ───
+    var targetCells = initialCells || null;
+    var hasTarget = !!(targetCells && targetCells.length);
+    var hexById = {};
+    COLORS.forEach(function(c) { hexById[c.id] = c.hex; });
+
+    var ghostOn = hasTarget;
+    var ghostCanvas = null;
+    var btnAuto = document.getElementById('btn-auto');
+    var btnGhost = document.getElementById('btn-ghost');
+    var speedSelect = document.getElementById('auto-speed');
+
+    function emptyBg() { return ghostOn ? 'rgba(136,136,136,0.22)' : '#888'; }
+
+    function refreshEmptyEls() {
+      cellEls.forEach(function(el, i) {
+        if (!cellColors[i]) el.style.background = emptyBg();
+      });
+    }
+
+    function buildGhost() {
+      if (!hasTarget) return;
+      if (ghostCanvas) { ghostCanvas.remove(); ghostCanvas = null; }
+      ghostCanvas = document.createElement('canvas');
+      ghostCanvas.width = gridW;
+      ghostCanvas.height = gridH;
+      var gctx = ghostCanvas.getContext('2d');
+      for (var gi = 0; gi < TOTAL; gi++) {
+        var tid = targetCells[gi];
+        var hex = tid ? hexById[tid] : null;
+        if (!hex) continue;
+        gctx.fillStyle = hex;
+        var gr = Math.floor(gi / COLS);
+        var gc = gi % COLS;
+        gctx.fillRect(gc * CELL_SIZE, gr * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
+      ghostCanvas.style.cssText = 'position:absolute;top:10px;left:10px;pointer-events:none;z-index:1;opacity:0.5;';
+      wrapper.appendChild(ghostCanvas);
+      refreshEmptyEls();
+    }
+
+    grid.style.position = 'relative';
+    grid.style.zIndex = '2';
+
+    function toggleGhost() {
+      ghostOn = !ghostOn;
+      if (ghostOn && ghostCanvas === null) buildGhost();
+      if (ghostCanvas) ghostCanvas.style.display = ghostOn ? 'block' : 'none';
+      refreshEmptyEls();
+      btnGhost.style.borderColor = ghostOn ? '#c9a84c' : '#333';
+      btnGhost.style.color = ghostOn ? '#fff' : '#aaa';
+    }
+
+    // ─── Auto-colorisation (bords → centre, allure naturelle) ───
+    var autoRunning = false;
+    var autoTimer = null;
+    var autoIdx = 0;
+    var autoOrder = [];
+    var autoSpeed = parseInt(speedSelect.value) || 40;
+
+    function buildAutoOrder() {
+      var order = new Array(TOTAL);
+      for (var oi = 0; oi < TOTAL; oi++) order[oi] = oi;
+      function layerOf(idx) {
+        var r = Math.floor(idx / COLS);
+        var c = idx % COLS;
+        return Math.min(r, ROWS - 1 - r, c, COLS - 1 - c);
+      }
+      order.sort(function(a, b) {
+        var la = layerOf(a), lb = layerOf(b);
+        if (la !== lb) return la - lb;
+        var ra = Math.floor(a / COLS), rb = Math.floor(b / COLS);
+        if (ra !== rb) return ra - rb;
+        return (a % COLS) - (b % COLS);
+      });
+      return order;
+    }
+
+    function autoStep() {
+      if (!autoRunning) return;
+      while (autoIdx < autoOrder.length) {
+        var idx = autoOrder[autoIdx++];
+        var tid = targetCells[idx];
+        if (!tid) continue;
+        if (cellColors[idx] === tid) continue;
+        var el = cellEls[idx];
+        var prev = cellColors[idx];
+        if (prev) counts[prev] = Math.max(0, counts[prev] - 1);
+        el.style.background = hexById[tid];
+        cellColors[idx] = tid;
+        counts[tid] = (counts[tid] || 0) + 1;
+        updateCounters();
+        playPaintSound();
+        if (autoIdx >= autoOrder.length) { stopAuto(); return; }
+        autoTimer = setTimeout(autoStep, autoSpeed * (0.7 + Math.random() * 0.6));
+        return;
+      }
+      stopAuto();
+    }
+
+    function startAuto() {
+      if (!hasTarget || autoRunning) return;
+      autoRunning = true;
+      autoIdx = 0;
+      if (!autoOrder.length) autoOrder = buildAutoOrder();
+      btnAuto.style.borderColor = '#c9a84c';
+      btnAuto.style.color = '#fff';
+      btnAuto.textContent = '⏸ Stopper';
+      if (ghostOn) toggleGhost();
+      autoStep();
+    }
+
+    function stopAuto() {
+      autoRunning = false;
+      if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+      btnAuto.style.borderColor = 'transparent';
+      btnAuto.style.color = '#aaa';
+      btnAuto.textContent = '🤖 Démarrer';
+    }
+
+    btnAuto.onclick = function() { autoRunning ? stopAuto() : startAuto(); };
+    btnGhost.onclick = toggleGhost;
+    speedSelect.onchange = function() { autoSpeed = parseInt(speedSelect.value) || 40; };
+
+    if (!hasTarget) {
+      btnAuto.style.opacity = '0.35';
+      btnGhost.style.opacity = '0.35';
+    } else {
+      buildGhost();
+      btnGhost.style.borderColor = '#c9a84c';
+      btnGhost.style.color = '#fff';
+    }
+  }
+
+  // ─── Lien avec mosaic-master (même cadre, mêmes couleurs) ───
+  function startGridFromState(cols, rows, colors, grid, cube) {
+    var useBlocks = cube && cube > 1;
+    var bcols = useBlocks ? cube : 0;
+    var brows = useBlocks ? cube : 0;
+    startGrid(cols, rows, bcols, brows, colors, 'real', grid);
+  }
+
+  if (window.opener) {
+    var stateFrozen = false;
+    window.addEventListener('message', function(e) {
+      if (stateFrozen) return;
+      if (!e.data || e.data.type !== 'gwPaintState') return;
+      var s = e.data.state;
+      if (!s || !s.cols || !s.rows || !s.grid) return;
+      if (s.grid.length !== s.cols * s.rows) return;
+      stateFrozen = true;
+      var colors = s.colors.map(function(c, i) { return { id: 'mc' + i, hex: c.hex, name: c.name }; });
+      var grid = s.grid.map(function(idx) { return 'mc' + idx; });
+      startGridFromState(s.cols, s.rows, colors, grid, s.cube);
+    });
+    function askState() {
+      try { window.opener.postMessage({ type: 'gwINeedPaintState' }, '*'); } catch(e) {}
+    }
+    window.addEventListener('load', askState);
+    setTimeout(askState, 500);
+  }
+</script>
+
+</body>
+</html>
